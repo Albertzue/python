@@ -13,23 +13,17 @@ dropout = 0.1
 loss_fn = nn.CrossEntropyLoss()
 batch_size = 128
 n_epochs = 100
-# generator = torch.Generator().manual_seed(42)
-# dataset = OfftargetDataset_train()
-# train_set, val_set = torch.utils.data.random_split(dataset,[0.8,0.2], generator= generator)
-train_set = OfftargetDataset_train()
-val_set = OfftargetDataset_val()
+generator = torch.Generator().manual_seed(42)
+dataset = OfftargetDataset_train()
+train_set, val_set = torch.utils.data.random_split(dataset,[0.8,0.2], generator= generator)
+# train_set = OfftargetDataset_train()
+# val_set = OfftargetDataset_val()
 train_dataloader = DataLoader(batch_size=batch_size, shuffle=True, dataset=train_set)
 val_dataloader = DataLoader(batch_size=batch_size, shuffle=False, dataset=val_set)
 
 
 model = nn.Sequential(
-    nn.Linear(184,2048),
-    nn.ReLU(),
-    nn.Linear(2048,1024),
-    nn.ReLU(),
-    nn.Linear(1024,512),
-    nn.ReLU(),
-    nn.Linear(512,256),
+    nn.Linear(184,256),
     nn.ReLU(),
     nn.Linear(256,128),
     nn.ReLU(),
