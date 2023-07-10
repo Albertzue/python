@@ -6,6 +6,7 @@ def Convert(result):
     return  1.0 if(result == "on-target") else 0.0
  
 def toNum(seq):
+
     dict = {"A": 0, "G": 1, "C": 2, "T":3}
     result = []
     for i in  enumerate(seq):
@@ -19,14 +20,14 @@ class OfftargetDataset_train(Dataset):
         x = []
         y = []
        
-        for i in list([0]):
+        for i in list([1]):
             temp = np.loadtxt(f"./data/dataset{i+1}.csv", delimiter=',', skiprows=1, dtype=np.unicode_)
             temp = temp[:,0:3]
-
+              ##SOS 0 EOS -1
             for row_num in range(temp.shape[0]):
-                otdna_onehot = toNum(temp[row_num][1])
-                sgrna_onehot = toNum(temp[row_num][0])
-                temp_x = np.concatenate((otdna_onehot,sgrna_onehot),axis=0) 
+                otdna_seq = toNum(temp[row_num][1])
+                sgrna_seq = toNum(temp[row_num][0])
+                temp_x = np.concatenate((otdna_seq,sgrna_seq),axis=0) 
                 y.append(float(temp[row_num][2]))
                 x.append(temp_x)    
 

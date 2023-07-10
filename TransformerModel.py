@@ -6,50 +6,74 @@ from positionalEncoding import PositionalEncoding
 
 
 class Transformer(nn.Module):
+
     def __init__(
         self,
-        nhead=8,
-        dim_feedforward=128,
-        num_layers=6,
-        dropout=0.1,
+        num_tokens,
+        dim_model,
+        num_heads=6,
+        num_encoder_layers=6,
+        num_decoder_layers=6,
+        dropout_p=0.1,
     ):
-
         super().__init__()
 
-        vocab_size, d_model = 4,46
-        assert d_model % nhead == 0, "nheads must divide evenly into d_model"
+        # INFO
+        self.model_type = "Transformer"
+        self.dim_model = dim_model
 
-        self.emb = nn.Embedding(vocab_size,d_model)
-
-        self.pos_encoder = PositionalEncoding(
-            d_model=d_model,
-            dropout=dropout,
-            vocab_size=vocab_size,
+        # LAYERS
+        self.positional_encoder = PositionalEncoding(
+            dim_model=dim_model, dropout_p=dropout_p, max_len=46
         )
-
-        encoder_layer = nn.TransformerEncoderLayer(
-            d_model=d_model,
-            nhead=nhead,
-            dim_feedforward=dim_feedforward,
-            dropout=dropout,
+        self.embedding = nn.Embedding(num_tokens, dim_model)
+        self.transformer = nn.Transformer(
+            d_model=dim_model,
+            nhead=num_heads,
+            num_encoder_layers=num_encoder_layers,
+            num_decoder_layers=num_decoder_layers,
+            dropout=dropout_p,
         )
-        self.transformer_encoder = nn.TransformerEncoder(
-            encoder_layer,
-            num_layers=num_layers,
-        )
-        self.classifier = nn.Sequential(
-                nn.Linear(d_model,dim_feedforward),
-                nn.ReLU(),
-                nn.Dropout(dropout),
-                nn.Linear(64,2)
-            )
-        self.d_model = d_model
+        self.out = nn.Linear(dim_model, num_tokens)
+        
+    def forward(self, src, tgt, tgt_mask=None, src_pad_mask=None, tgt_pad_mask=None):
+        # Src size must be (batch_size, src sequence length)
+        # Tgt size must be (batch_size, tgt sequence length)
 
-    def forward(self, x):
-        x = self.emb(x) * math.sqrt(self.d_model)
-        x = self.pos_encoder(x)
-        x = self.transformer_encoder(x)
-        x = x.mean(dim=1)
-        x = self.classifier(x)
+        # Embedding + positional encoding - Out size = (batch_size, sequence length, dim_model)
+        src = self.embedding(src) * math.sqrt(self.dim_model)
+        tgt = self.embedding(tgt) * math.sqrt(self.dim_model)
+        src = self.positional_encoder(src)
+        tgt = self.positional_encoder(tgt)
+        
+        # We could use the parameter batch_first=True, but our KDL version doesn't support it yet, so we permute
+        # to obtain size (sequence length, batch_size, dim_model),
+        src = src.permute(1,0,2)
+        tgt = tgt.permute(1,0,2)
 
-        return x
+        # Transformer blocks - Out size = (sequence length, batch_size, num_tokens)
+        transformer_out = self.transformer(src, tgt, tgt_mask=tgt_mask, src_key_padding_mask=src_pad_mask, tgt_key_padding_mask=tgt_pad_mask)
+        out = self.out(transformer_out)
+        
+        return out
+      
+    def get_tgt_mask(self, size) -> torch.tensor:
+        # Generates a squeare matrix where the each row allows one word more to be seen
+        mask = torch.tril(torch.ones(size, size) == 1) # Lower triangular matrix
+        mask = mask.float()
+        mask = mask.masked_fill(mask == 0, float('-inf')) # Convert zeros to -inf
+        mask = mask.masked_fill(mask == 1, float(0.0)) # Convert ones to 0
+        
+        # EX for size=5:
+        # [[0., -inf, -inf, -inf, -inf],
+        #  [0.,   0., -inf, -inf, -inf],
+        #  [0.,   0.,   0., -inf, -inf],
+        #  [0.,   0.,   0.,   0., -inf],
+        #  [0.,   0.,   0.,   0.,   0.]]
+        
+        return mask
+    
+    def create_pad_mask(self, matrix: torch.tensor, pad_token: int) -> torch.tensor:
+        # If matrix = [1,2,3,0,0,0] where pad_token=0, the result mask is
+        # [False, False, False, True, True, True]
+        return (matrix == pad_token)
