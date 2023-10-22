@@ -8,6 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sklearn.metrics as metrics
 
+path ="nnModel/fnn"
 learning_rate = 1e-2
 dropout = 0.1
 loss_fn = nn.CrossEntropyLoss()
@@ -70,4 +71,7 @@ plt.plot(fpr, tpr, 'b', label = f'FNN AUC={roc_auc}')
 
 plt.ylabel('True Positive Rate')
 plt.xlabel('False Positive Rate')
+plt.legend(["fnn"])
 plt.show()
+
+torch.save(model,path)

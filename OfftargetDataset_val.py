@@ -27,7 +27,7 @@ class OfftargetDataset_val(Dataset):
                 sgrna_onehot = toOneHot(temp[row_num][0])
                 temp_x = np.concatenate((otdna_onehot,sgrna_onehot),axis=1)
                 y.append(int(temp[row_num][2]))
-                x.append(temp_x)             
+                x.append(temp_x.T)             
 
         x = np.asarray(x,dtype=np.float32)
         y = np.asarray(y,dtype=np.float32)

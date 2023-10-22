@@ -6,7 +6,7 @@ def Convert(result):
     return  1.0 if(result == "on-target") else 0.0
  
 def toOneHot(seq):
-    dict = {"A": np.array([1,0,0,0]), "G": np.array([0,1,0,0]), "C": np.array([0,0,1,0]), "T":np.array([0,0,0,1])}
+    dict = {"A": np.array([1,0,0,0]).T, "G": np.array([0,1,0,0]).T, "C": np.array([0,0,1,0]).T, "T":np.array([0,0,0,1]).T}
     result = []
     for i in  enumerate(seq):
         temp = dict[i[1]]
@@ -19,7 +19,7 @@ class OfftargetDataset_train(Dataset):
         x = []
         y = []
        
-        for i in list([0]):
+        for i in list([0,]):
             temp = np.loadtxt(f"./data/dataset{i+1}.csv", delimiter=',', skiprows=1, dtype=np.unicode_)
             temp = temp[:,0:3]
 
@@ -29,7 +29,7 @@ class OfftargetDataset_train(Dataset):
                     sgrna_onehot = toOneHot(temp[row_num][0])
                     temp_x = np.concatenate((otdna_onehot,sgrna_onehot),axis=1) 
                     y.append(int(temp[row_num][2]))
-                    x.append(temp_x)    
+                    x.append(temp_x.T)    
 
             print(f"data{i+1} loaded")
             

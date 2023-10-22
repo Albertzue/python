@@ -12,7 +12,7 @@ learning_rate = 1e-2
 dropout = 0.2
 loss_fn = nn.CrossEntropyLoss()
 batch_size = 128
-n_epochs = 30
+n_epochs = 50
 train_set = OfftargetDataset_train()
 val_set = OfftargetDataset_val()
 # generator = torch.Generator().manual_seed(42)
@@ -21,6 +21,9 @@ val_set = OfftargetDataset_val()
 generator = torch.Generator().manual_seed(66)
 train_dataloader = DataLoader(batch_size=batch_size, shuffle=True, dataset=train_set)
 val_dataloader = DataLoader(batch_size=batch_size, shuffle=False, dataset=val_set)
+path ="nnModel/cnn"
+
+
 
 class CNN_model(nn.Module):
    def __init__(self):
@@ -54,7 +57,7 @@ for epoch in range(n_epochs):
         loss.backward()
         optimizer.step()
     
-    if(epoch % 5 ==0):
+    if(epoch % 10 ==0):
         print(f"Epoch{epoch} loss={loss.item()}")
         
 correct = 0
@@ -68,3 +71,5 @@ with torch.no_grad():
         correct += int((predicted == labels).sum())
         scores = np.concatenate((scores, data.numpy()))
 print(f"Accuracy:{correct/total}")
+
+torch.save(model,path)
