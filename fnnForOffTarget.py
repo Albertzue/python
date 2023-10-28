@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from OfftargetDataset_train import OfftargetDataset_train
+from OfftargetDataset_train_balance import OfftargetDataset_train_balance
 from OfftargetDataset_val import OfftargetDataset_val
 from torch.utils.data import DataLoader
 import numpy as np
@@ -15,7 +15,7 @@ loss_fn = nn.CrossEntropyLoss()
 batch_size = 64
 n_epochs = 100
 generator = torch.Generator().manual_seed(42)
-dataset = OfftargetDataset_train()
+dataset = OfftargetDataset_train_balance()
 train_set, val_set = torch.utils.data.random_split(dataset,[0.8,0.2], generator= generator)
 # train_set = OfftargetDataset_train()
 # val_set = OfftargetDataset_val()
