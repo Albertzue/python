@@ -19,7 +19,7 @@ class OfftargetDataset_train(Dataset):
         x = []
         y = []
        
-        for i in list([0,]):
+        for i in list([1,]):
             temp = np.loadtxt(f"./data/dataset{i+1}.csv", delimiter=',', skiprows=1, dtype=np.unicode_)
             temp = temp[:,0:3]
 
