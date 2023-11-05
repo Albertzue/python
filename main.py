@@ -28,7 +28,7 @@ class CNN_model(nn.Module):
        return out
 
 
-fnnpath ="nnModel/fnn"
+fnnpath ="nnModel/fnn_lof"
 cnnpath ="nnModel/cnn"
 learning_rate = 1e-2
 dropout = 0.1

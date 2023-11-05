@@ -3,7 +3,8 @@ from torch.utils.data import Dataset
 import numpy as np
 import torch
 from imblearn.over_sampling import SVMSMOTE
-
+from sklearn.neighbors import LocalOutlierFactor
+from sklearn.ensemble import IsolationForest
 def Convert(result):
     return  1.0 if(result == "on-target") else 0.0
  
@@ -20,9 +21,9 @@ class OfftargetDataset_train_balance(Dataset):
     def __init__(self,convertType='onehot'):
         x = []
         y = []
-       
-       
-        for i in list([1,]):
+        ## clf = LocalOutlierFactor(n_neighbors=100)
+        clf = IsolationForest(n_estimators=2, warm_start=True)
+        for i in list([0,1]):
             temp = np.loadtxt(f"./data/dataset{i+1}.csv", delimiter=',', skiprows=1, dtype=np.unicode_)
             temp = temp[:,0:3]
           
@@ -36,16 +37,31 @@ class OfftargetDataset_train_balance(Dataset):
                     x.append(temp_x.T)    
 
             print(f"data{i+1} loaded")
-        sm = SVMSMOTE(random_state=42)
+        
         length = len(x)
         rx= np.reshape(x,(length,184))
+        test_y = np.asarray([y])
+        test = np.concatenate((rx,test_y.T),axis=1)
+        anormals = np.array(clf.fit_predict(test))  
+        anormals = anormals<0
+        sm = SVMSMOTE(random_state=42)
+       
+        rx = rx[anormals]
+        y = np.asarray(y)[anormals] 
         X_res, y_res = sm.fit_resample(rx, y) 
         X_res = np.reshape(X_res,(len(X_res),8,23))
+        
+       
         x = np.asarray(X_res,dtype=np.float32)
         y = np.asarray(y_res,dtype=np.float32)
        
         self.x =torch.from_numpy(x)
         self.y =torch.from_numpy(y)
+        
+      
+        
+       
+        
         self.n_samples = len(x)
 
         
